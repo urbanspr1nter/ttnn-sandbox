@@ -10,9 +10,6 @@ def generate_text_simple(model, idx, max_new_tokens, context_size):
     logits = logits[:, -1, :]
     probas = torch.softmax(logits, dim=-1)
     idx_next = torch.argmax(probas, dim=-1, keepdim=True)
-
-    print(idx)
-    print(idx_next)
     
     idx = torch.cat((idx, idx_next), dim=1)
 
