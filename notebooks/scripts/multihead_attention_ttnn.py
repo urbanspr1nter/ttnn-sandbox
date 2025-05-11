@@ -17,12 +17,18 @@ class MultiHeadAttention_ttnn(nn.Module):
     self.num_heads = num_heads
     self.head_dim = d_out // num_heads # Reduce the projection dimension to match the output dim
 
+    # Trainable weights
     self.W_query = nn.Linear(d_in, d_out, bias=qkv_bias)
     self.W_key = nn.Linear(d_in, d_out, bias=qkv_bias)
     self.W_value = nn.Linear(d_in, d_out, bias=qkv_bias)
     self.out_proj = nn.Linear(d_out, d_out)
+
+    # STatic Tensors
     self.dropout = nn.Dropout(dropout)
-    self.mask = torch.triu(torch.ones(context_length, context_length), diagonal=1)
+    self.mask = torch.triu(
+      torch.ones(context_length, context_length),
+      diagonal=1
+    )
 
     self.W_query_ttnn = ttnn.from_torch(
       self.W_query.weight,
@@ -50,6 +56,32 @@ class MultiHeadAttention_ttnn(nn.Module):
     )
     self.mask_ttnn = ttnn.from_torch(
       self.mask,
+      dtype=ttnn.bfloat16,
+      layout=ttnn.TILE_LAYOUT,
+      device=self.device,
+    )
+
+  def update_weights(self):
+    self.W_query_ttnn = ttnn.from_torch(
+      self.W_query.weight,
+      dtype=ttnn.bfloat16,
+      layout=ttnn.TILE_LAYOUT,
+      device=self.device,
+    )
+    self.W_key_ttnn = ttnn.from_torch(
+      self.W_key.weight,
+      dtype=ttnn.bfloat16,
+      layout=ttnn.TILE_LAYOUT,
+      device=self.device,
+    )
+    self.W_value_ttnn = ttnn.from_torch(
+      self.W_value.weight,
+      dtype=ttnn.bfloat16,
+      layout=ttnn.TILE_LAYOUT,
+      device=self.device,
+    )
+    self.out_proj_ttnn = ttnn.from_torch(
+      self.out_proj.weight,
       dtype=ttnn.bfloat16,
       layout=ttnn.TILE_LAYOUT,
       device=self.device,

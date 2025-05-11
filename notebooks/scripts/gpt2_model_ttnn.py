@@ -4,6 +4,9 @@ from torch import nn
 from .multihead_attention_ttnn import MultiHeadAttention_ttnn
 
 class LayerNorm_ttnn(nn.Module):
+  """
+  Applies normalization of the weights
+  """
   def __init__(self, emb_dim, device):
     super().__init__()
 
@@ -53,6 +56,9 @@ class LayerNorm_ttnn(nn.Module):
     return norm_x_ttnn
 
 class GELU_ttnn(nn.Module):
+  """
+  GELU Module
+  """
   def __init__(self, device):
     super().__init__()
 
@@ -124,6 +130,24 @@ class FeedForward_ttnn(nn.Module):
     )
     self.gelu_ttnn = GELU_ttnn(self.device)
 
+  def update_weights(self):
+    """
+    Recreate the the linear layer tensors after
+    they have been updated.
+    """
+    self.lin_1_ttnn = ttnn.from_torch(
+      self.lin_1.weight,
+      dtype=ttnn.bfloat16,
+      layout=ttnn.TILE_LAYOUT,
+      device=self.device,
+    )
+    self.lin_2_ttnn = ttnn.from_torch(
+      self.lin_2.weight,
+      dtype=ttnn.bfloat16,
+      layout=ttnn.TILE_LAYOUT,
+      device=self.device,
+    )
+
 
   def forward(self, x_ttnn):
     lin_1_bias = ttnn.from_torch(
@@ -182,6 +206,10 @@ class TransformerBlock_ttnn(nn.Module):
     self.norm1 = LayerNorm_ttnn(cfg["emb_dim"], self.device)
     self.norm2 = LayerNorm_ttnn(cfg["emb_dim"], self.device)
 
+  def update_weights(self):
+    self.att.update_weights()
+    self.ff.update_weights()
+  
   def do_dropout(self, x_ttnn):
     x_ttnn = ttnn.experimental.dropout(
       x_ttnn,
@@ -238,12 +266,36 @@ class GPTModel_ttnn(nn.Module):
     self.out_head = nn.Linear(
       cfg["emb_dim"], cfg["vocab_size"], bias=False
     )
+
     self.out_head_ttnn = ttnn.from_torch(
       self.out_head.weight,
       dtype=ttnn.bfloat16,
       layout=ttnn.TILE_LAYOUT,
       device=self.device,
     )
+
+  def update_weights(self):
+    for tr_block in self.trf_blocks_ttnn:
+      tr_block.update_weights()
+
+    self.tok_emb_ttnn = ttnn.from_torch(
+      self.tok_emb.weight,
+      dtype=ttnn.bfloat16,
+      device=self.device,
+    )
+    self.pos_emb_ttnn = ttnn.from_torch(
+      self.pos_emb.weight,
+      dtype=ttnn.bfloat16,
+      device=self.device,
+    )
+
+    self.out_head_ttnn = ttnn.from_torch(
+      self.out_head.weight,
+      dtype=ttnn.bfloat16,
+      layout=ttnn.TILE_LAYOUT,
+      device=self.device,
+    )
+
 
   def do_dropout(self, x_ttnn):
     x_ttnn = ttnn.experimental.dropout(
