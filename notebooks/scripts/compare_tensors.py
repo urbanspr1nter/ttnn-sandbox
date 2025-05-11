@@ -1,6 +1,6 @@
 import torch
 
-def compare_tensors(torch_tensor: torch.Tensor, ttnn_tensor: torch.Tensor, max_diff_tolerance=0.02, mean_diff_tolerance=0.02, correlation_tolerance=0.99):
+def compare_tensors(torch_tensor: torch.Tensor, ttnn_tensor: torch.Tensor, max_diff_tolerance=0.02, mean_diff_tolerance=0.02, correlation_tolerance=0.99, suppress_details=False):
     """
     Compare outputs from PyTorch and TTNN implementations with tolerance checks.
     
@@ -71,7 +71,9 @@ def compare_tensors(torch_tensor: torch.Tensor, ttnn_tensor: torch.Tensor, max_d
                 ttnn_val = ttnn_tensor[i, j, k].item()
                 diff = abs(torch_val - ttnn_val)
                 diff_status = "✅" if diff <= max_diff_tolerance else "❌"
-                print(f"  Position [{i},{j},{k}]: PyTorch={torch_val:.6f}, TTNN={ttnn_val:.6f}, Diff={diff:.6f} {diff_status}")
+
+                if not suppress_details:
+                    print(f"  Position [{i},{j},{k}]: PyTorch={torch_val:.6f}, TTNN={ttnn_val:.6f}, Diff={diff:.6f} {diff_status}")
     
     return {
         'max_diff': max_abs_diff,

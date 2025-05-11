@@ -2,6 +2,7 @@ import ttnn
 import torch
 from torch import nn
 from .multihead_attention_ttnn import MultiHeadAttention_ttnn
+from .gpt2_model import LayerNorm
 
 class LayerNorm_ttnn(nn.Module):
   """
@@ -17,6 +18,20 @@ class LayerNorm_ttnn(nn.Module):
     self.scale = nn.Parameter(torch.ones(emb_dim))
     self.shift = nn.Parameter(torch.zeros(emb_dim))
 
+    self.scale_ttnn = ttnn.from_torch(
+      self.scale,
+      dtype=ttnn.bfloat16,
+      layout=ttnn.TILE_LAYOUT,
+      device=self.device
+    )
+    self.shift_ttnn = ttnn.from_torch(
+      self.shift,
+      dtype=ttnn.bfloat16,
+      layout=ttnn.TILE_LAYOUT,
+      device=self.device
+    )
+
+  def update_weights(self):
     self.scale_ttnn = ttnn.from_torch(
       self.scale,
       dtype=ttnn.bfloat16,
@@ -209,7 +224,9 @@ class TransformerBlock_ttnn(nn.Module):
   def update_weights(self):
     self.att.update_weights()
     self.ff.update_weights()
-  
+    self.norm1.update_weights()
+    self.norm2.update_weights()
+
   def do_dropout(self, x_ttnn):
     x_ttnn = ttnn.experimental.dropout(
       x_ttnn,
@@ -261,7 +278,7 @@ class GPTModel_ttnn(nn.Module):
       TransformerBlock_ttnn(self.cfg, self.device) for _ in range(self.num_layers)
     ]
 
-    self.final_norm_ttnn = LayerNorm_ttnn(cfg["emb_dim"], self.device)
+    self.final_norm = LayerNorm_ttnn(cfg["emb_dim"], self.device)
 
     self.out_head = nn.Linear(
       cfg["emb_dim"], cfg["vocab_size"], bias=False
@@ -289,12 +306,15 @@ class GPTModel_ttnn(nn.Module):
       device=self.device,
     )
 
+    self.final_norm.update_weights()
+
     self.out_head_ttnn = ttnn.from_torch(
       self.out_head.weight,
       dtype=ttnn.bfloat16,
       layout=ttnn.TILE_LAYOUT,
       device=self.device,
     )
+
 
 
   def do_dropout(self, x_ttnn):
@@ -335,7 +355,7 @@ class GPTModel_ttnn(nn.Module):
     for trf_block_ttnn in self.trf_blocks_ttnn:
       x_ttnn = trf_block_ttnn(x_ttnn)
 
-    x_ttnn = self.final_norm_ttnn(x_ttnn)
+    x_ttnn = self.final_norm(x_ttnn)
 
     logits_ttnn = ttnn.linear(
       x_ttnn,
