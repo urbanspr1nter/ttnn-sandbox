@@ -54,6 +54,12 @@ class MultiHeadAttention_ttnn(nn.Module):
       layout=ttnn.TILE_LAYOUT,
       device=self.device,
     )
+    self.out_proj_bias_ttnn = ttnn.from_torch(
+      self.out_proj.bias,
+      dtype=ttnn.bfloat16,
+      layout=ttnn.TILE_LAYOUT,
+      device=self.device
+    )
     self.mask_ttnn = ttnn.from_torch(
       self.mask,
       dtype=ttnn.bfloat16,
@@ -85,6 +91,12 @@ class MultiHeadAttention_ttnn(nn.Module):
       dtype=ttnn.bfloat16,
       layout=ttnn.TILE_LAYOUT,
       device=self.device,
+    )
+    self.out_proj_bias_ttnn = ttnn.from_torch(
+      self.out_proj.bias,
+      dtype=ttnn.bfloat16,
+      layout=ttnn.TILE_LAYOUT,
+      device=self.device
     )
 
   def forward(self, x_ttnn):
@@ -151,12 +163,6 @@ class MultiHeadAttention_ttnn(nn.Module):
     context_vec_ttnn = ttnn.permute(context_vec_ttnn, (0, 2, 1, 3))
     context_vec_ttnn = ttnn.reshape(context_vec_ttnn, (b, num_tokens, self.d_out))
 
-    out_proj_bias_ttnn = ttnn.from_torch(
-      self.out_proj.bias,
-      dtype=ttnn.bfloat16,
-      layout=ttnn.TILE_LAYOUT,
-      device=self.device
-    )
 
     context_vec_ttnn = ttnn.linear(
       context_vec_ttnn,
@@ -164,6 +170,6 @@ class MultiHeadAttention_ttnn(nn.Module):
       transpose_b=True,
       core_grid=ttnn.CoreGrid(y=core_grid_y, x=core_grid_x)
     )
-    context_vec_ttnn = ttnn.add(context_vec_ttnn, out_proj_bias_ttnn)
+    context_vec_ttnn = ttnn.add(context_vec_ttnn, self.out_proj_bias_ttnn)
 
     return context_vec_ttnn

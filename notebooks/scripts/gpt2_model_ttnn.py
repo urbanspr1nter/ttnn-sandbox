@@ -143,6 +143,19 @@ class FeedForward_ttnn(nn.Module):
       layout=ttnn.TILE_LAYOUT,
       device=self.device,
     )
+    self.lin_1_bias_ttnn = ttnn.from_torch(
+      self.lin_1.bias,
+      dtype=ttnn.bfloat16,
+      layout=ttnn.TILE_LAYOUT,
+      device=self.device,
+    )
+    self.lin_2_bias_ttnn = ttnn.from_torch(
+      self.lin_2.bias,
+      dtype=ttnn.bfloat16,
+      layout=ttnn.TILE_LAYOUT,
+      device=self.device,
+    )
+
     self.gelu_ttnn = GELU_ttnn(self.device)
 
   def update_weights(self):
@@ -162,39 +175,34 @@ class FeedForward_ttnn(nn.Module):
       layout=ttnn.TILE_LAYOUT,
       device=self.device,
     )
-
-
-  def forward(self, x_ttnn):
-    lin_1_bias = ttnn.from_torch(
+    self.lin_1_bias_ttnn = ttnn.from_torch(
       self.lin_1.bias,
       dtype=ttnn.bfloat16,
       layout=ttnn.TILE_LAYOUT,
       device=self.device,
-      memory_config=ttnn.L1_MEMORY_CONFIG
     )
-
-    x_ttnn = ttnn.linear(
-      x_ttnn,
-      self.lin_1_ttnn,
-      transpose_b=True,
-      bias=lin_1_bias,
-    )
-
-    x_ttnn = self.gelu_ttnn(x_ttnn)
-
-    lin_2_bias = ttnn.from_torch(
+    self.lin_2_bias_ttnn = ttnn.from_torch(
       self.lin_2.bias,
       dtype=ttnn.bfloat16,
       layout=ttnn.TILE_LAYOUT,
       device=self.device,
-      memory_config=ttnn.L1_MEMORY_CONFIG
     )
+
+  def forward(self, x_ttnn):
+    x_ttnn = ttnn.linear(
+      x_ttnn,
+      self.lin_1_ttnn,
+      transpose_b=True,
+      bias=self.lin_1_bias_ttnn,
+    )
+
+    x_ttnn = self.gelu_ttnn(x_ttnn)
 
     x_ttnn = ttnn.linear(
       x_ttnn,
       self.lin_2_ttnn,
       transpose_b=True,
-      bias=lin_2_bias,
+      bias=self.lin_2_bias_ttnn,
     )
 
     return x_ttnn 
@@ -241,13 +249,19 @@ class TransformerBlock_ttnn(nn.Module):
     shortcut = x
     x = self.norm1(x)
     x = self.att(x)
-    x = self.do_dropout(x) 
+
+    if self.cfg["drop_rate"] > 0.0:
+      x = self.do_dropout(x) 
+    
     x = ttnn.add(x, shortcut)
 
     shortcut = x
     x = self.norm2(x)
     x = self.ff(x)
-    x = self.do_dropout(x)
+
+    if self.cfg["drop_rate"] > 0.0:
+      x = self.do_dropout(x)
+    
     x = ttnn.add(x, shortcut)
 
     return x
@@ -350,7 +364,8 @@ class GPTModel_ttnn(nn.Module):
       ttnn.to_layout(pos_embed_vals_ttnn, layout=ttnn.TILE_LAYOUT)
     )
 
-    x_ttnn = self.do_dropout(x_ttnn)
+    if self.cfg["drop_rate"] > 0.0:
+      x_ttnn = self.do_dropout(x_ttnn)
 
     for trf_block_ttnn in self.trf_blocks_ttnn:
       x_ttnn = trf_block_ttnn(x_ttnn)

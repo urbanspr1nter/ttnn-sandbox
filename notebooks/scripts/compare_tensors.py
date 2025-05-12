@@ -1,3 +1,4 @@
+from contextlib import suppress
 import torch
 
 def compare_tensors(torch_tensor: torch.Tensor, ttnn_tensor: torch.Tensor, max_diff_tolerance=0.02, mean_diff_tolerance=0.02, correlation_tolerance=0.99, suppress_details=False):
@@ -52,28 +53,30 @@ def compare_tensors(torch_tensor: torch.Tensor, ttnn_tensor: torch.Tensor, max_d
         correlation >= correlation_tolerance
     ]) else "❌ FAIL"
     
-    # Print results with status indicators
-    print("=== Tensor Comparison ===")
-    print(f"Shapes: PyTorch {torch_tensor.shape}, TTNN {ttnn_tensor.shape}")
-    print(f"Data types: PyTorch {torch_tensor.dtype}, TTNN {ttnn_tensor.dtype}")
-    print("\nTolerance Checks:")
-    print(f"  Max Absolute Diff: {max_abs_diff:.6f} (Tolerance: {max_diff_tolerance:.6f}) {max_diff_status}")
-    print(f"  Mean Absolute Diff: {mean_abs_diff:.6f} (Tolerance: {mean_diff_tolerance:.6f}) {mean_diff_status}")
-    print(f"  Correlation: {correlation:.6f} (Tolerance: {correlation_tolerance:.6f}) {corr_status}")
     print(f"\nOverall Status: {overall_status}")
-    
-    # Print a few sample values for direct comparison
-    print("\nSample Value Comparisons (first 3 positions):")
-    for i in range(min(3, torch_tensor.shape[0])):
-        for j in range(min(3, torch_tensor.shape[1])):
-            for k in range(torch_tensor.shape[2]):
-                torch_val = torch_tensor[i, j, k].item()
-                ttnn_val = ttnn_tensor[i, j, k].item()
-                diff = abs(torch_val - ttnn_val)
-                diff_status = "✅" if diff <= max_diff_tolerance else "❌"
+    if not suppress_details:
+      # Print results with status indicators
+      print("=== Tensor Comparison ===")
+      print(f"Shapes: PyTorch {torch_tensor.shape}, TTNN {ttnn_tensor.shape}")
+      print(f"Data types: PyTorch {torch_tensor.dtype}, TTNN {ttnn_tensor.dtype}")
+      print("\nTolerance Checks:")
+      print(f"  Max Absolute Diff: {max_abs_diff:.6f} (Tolerance: {max_diff_tolerance:.6f}) {max_diff_status}")
+      print(f"  Mean Absolute Diff: {mean_abs_diff:.6f} (Tolerance: {mean_diff_tolerance:.6f}) {mean_diff_status}")
+      print(f"  Correlation: {correlation:.6f} (Tolerance: {correlation_tolerance:.6f}) {corr_status}")
+        
+      # Print a few sample values for direct comparison
+      print("\nSample Value Comparisons (first 3 positions):")
 
-                if not suppress_details:
-                    print(f"  Position [{i},{j},{k}]: PyTorch={torch_val:.6f}, TTNN={ttnn_val:.6f}, Diff={diff:.6f} {diff_status}")
+      for i in range(min(3, torch_tensor.shape[0])):
+          for j in range(min(3, torch_tensor.shape[1])):
+            for k in range(torch_tensor.shape[2]):
+              torch_val = torch_tensor[i, j, k].item()
+              ttnn_val = ttnn_tensor[i, j, k].item()
+              diff = abs(torch_val - ttnn_val)
+              diff_status = "✅" if diff <= max_diff_tolerance else "❌"
+
+              if not suppress_details:
+                print(f"  Position [{i},{j},{k}]: PyTorch={torch_val:.6f}, TTNN={ttnn_val:.6f}, Diff={diff:.6f} {diff_status}")
     
     return {
         'max_diff': max_abs_diff,
