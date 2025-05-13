@@ -1,41 +1,29 @@
 import ttnn
 import torch
-import tiktoken
-from torch import nn
 
-def manual_argmax_ttnn(
-  tensor, dim=-1, keepdim=True, device=None
-):
+def argmax_and_concat(x_ttnn, probas_ttnn, device=None):
   """
-  Super inefficient
+  Unfortunately this is super inefficient. I need to figure out how
+  we can offload all this to ttnn
   """
-  torch_tensor = ttnn.to_torch(tensor)
-  result = torch.argmax(
-    torch_tensor,
-    dim=dim,
-    keepdim=keepdim
+
+  x_torch = ttnn.to_torch(x_ttnn)
+  probas_torch = ttnn.to_torch(probas_ttnn)
+
+  max_arg_idx = torch.argmax(
+    probas_torch,
+    dim=-1,
+    keepdim=True
   )
-
-  result_ttnn = ttnn.from_torch(
-    result,
-    dtype=ttnn.uint32,
-    device=device
-  )
-
-  return result_ttnn
-
-def manual_concat(ttnn_1, ttnn_2, dim=-1, device=None):
-  """
-  Super inefficient
-  """
-
+  
   result_torch = torch.cat((
-    ttnn.to_torch(ttnn_1),
-    ttnn.to_torch(ttnn_2)
-  ), dim=dim)
+    x_torch,
+    max_arg_idx 
+  ), dim=-1)
 
   result_ttnn = ttnn.from_torch(
     result_torch,
+    layout=ttnn.TILE_LAYOUT,
     dtype=ttnn.uint32,
     device=device
   )
@@ -53,17 +41,10 @@ def generate_text_simple_ttnn(model, idx_ttnn, max_new_tokens, context_size, dev
     logits_ttnn = logits_ttnn[:, -1, :]
     probas_ttnn = softmax_ttnn(logits_ttnn)
 
-    idx_next = manual_argmax_ttnn(
-      probas_ttnn,
-      dim=-1,
-      keepdim=True,
-      device=device
-    )
+    # this is still being done on CPU
+    idx_ttnn = argmax_and_concat(idx_ttnn, probas_ttnn, device=device)
 
-    idx_ttnn = manual_concat(idx_ttnn, idx_next, dim=1, device=device)
-
-  print(idx_ttnn)
-  return idx_ttnn[0]
+  return idx_ttnn
 
 
 def softmax_ttnn(x_ttnn):
