@@ -2,7 +2,6 @@ import ttnn
 import torch
 from torch import nn
 from .multihead_attention_ttnn import MultiHeadAttention_ttnn
-from .gpt2_model import LayerNorm
 
 class LayerNorm_ttnn(nn.Module):
   """
