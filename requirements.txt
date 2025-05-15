@@ -1,3 +1,4 @@
+annotated-types==0.7.0
 anyio==4.9.0
 argon2-cffi==23.1.0
 argon2-cffi-bindings==21.2.0
@@ -24,6 +25,7 @@ dash-table==5.0.0
 debugpy==1.8.14
 decorator==5.2.1
 defusedxml==0.7.1
+docker-pycreds==0.4.0
 exceptiongroup==1.2.2
 executing==2.2.0
 fastjsonschema==2.21.1
@@ -32,6 +34,8 @@ Flask==3.0.3
 fonttools==4.57.0
 fqdn==1.5.1
 fsspec==2025.3.2
+gitdb==4.0.12
+GitPython==3.1.44
 graphviz==0.20.3
 h11==0.14.0
 httpcore==1.0.8
@@ -84,10 +88,13 @@ platformdirs==4.3.7
 plotly==5.18.0
 prometheus_client==0.21.1
 prompt_toolkit==3.0.51
+protobuf==6.30.2
 psutil==7.0.0
 ptyprocess==0.7.0
 pure_eval==0.2.3
 pycparser==2.22
+pydantic==2.11.4
+pydantic_core==2.33.2
 Pygments==2.19.1
 pyparsing==3.2.3
 python-dateutil==2.9.0.post0
@@ -104,7 +111,10 @@ rfc3986-validator==0.1.1
 rpds-py==0.24.0
 seaborn==0.13.2
 Send2Trash==1.8.3
+sentry-sdk==2.27.0
+setproctitle==1.3.6
 six==1.17.0
+smmap==5.0.2
 sniffio==1.3.1
 soupsieve==2.6
 stack-data==0.6.3
@@ -118,12 +128,14 @@ toolz==0.12.0
 torch==2.2.1+cpu
 tornado==6.4.2
 traitlets==5.14.3
-ttnn @ https://github.com/tenstorrent/tt-metal/releases/download/v0.57.0-rc60/ttnn-0.57.0rc60+any-cp310-cp310-linux_x86_64.whl#sha256=62d6c71987123b93a42e622919b37925f783b493aa19ad26cd665197c9545847
+ttnn @ https://github.com/tenstorrent/tt-metal/releases/download/v0.58.0-rc36/ttnn-0.58.0rc36-cp310-cp310-linux_x86_64.whl
 types-python-dateutil==2.9.0.20241206
+typing-inspection==0.4.0
 typing_extensions==4.13.2
 tzdata==2025.2
 uri-template==1.3.0
 urllib3==2.4.0
+wandb==0.19.11
 wcwidth==0.2.13
 webcolors==24.11.1
 webencodings==0.5.1
