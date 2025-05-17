@@ -10,7 +10,9 @@ class GPTDatasetV2(Dataset):
         j = 0
         tokens_length = len(tokens)
         for i in range(0, tokens_length - max_length, stride):
-            print(f"Processing chunk: {j}. Token: {i} of {tokens_length}")
+            if j % 10000 == 0:
+                print(f"Processing chunk: {j}. Token: {i} of {tokens_length}")
+                
             input_chunk = torch.tensor(tokens[i:i + max_length])
             target_chunk = torch.tensor(tokens[i + 1:i + max_length + 1])
             
