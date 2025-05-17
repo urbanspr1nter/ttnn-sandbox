@@ -19,7 +19,11 @@ def calc_loss_loader(data_loader, model, num_batches=None):
         # if num_batches exceeds the number of batches in the data loader
         num_batches = min(num_batches, len(data_loader))
 
+    print(f"Num batches: {num_batches}")
     for i, (input_batch, target_batch) in enumerate(data_loader):
+        if i % 10000 == 0:
+            print(f"Processing batch: {i}")
+
         if i < num_batches:
             loss = calc_loss_batch(input_batch, target_batch, model)
             total_loss += loss.item()

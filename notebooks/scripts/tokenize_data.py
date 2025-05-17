@@ -1,12 +1,6 @@
 from .perf_timer import PerfTimer
+import pickle
 import tiktoken
-
-def flush(file_name, tokens):
-  """
-  We will need to flush tokens to a file once in a while
-  """
-  with open(file_name, "a") as f:
-    f.write("\n".join([str(token) for token in tokens]))
 
 def tokenize(file_name, output_file):
   print(f"Tokenizing {file_name}")
@@ -33,11 +27,10 @@ def tokenize(file_name, output_file):
       if i % 10000 == 0:
         print(f"Lines Read: {i}")
 
-        flush(output_file, tokens)
-        tokens = []
-
       curr_line = f.readline()
 
+  with open(output_file, "wb") as f:
+    pickle.dump(tokens, f)
 
   timer.stop()
 
