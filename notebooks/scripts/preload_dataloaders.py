@@ -1,5 +1,4 @@
-from prepare_data import create_dataloader_v2
-from load_token_data import load_tokens
+from .prepare_data import create_dataloader_v2
 import pickle
 
 GPT_CONFIG_355M = {
@@ -60,8 +59,3 @@ def load_val_dataloader(pickled_val_loader_file_name):
 
   return val_loader
 
-create_train_dataloader(GPT_CONFIG_355M, "../data/fineweb-3b/train_tokens.lst", "train_loader.dl")
-print("Created train_loader.")
-
-create_val_dataloader(GPT_CONFIG_355M, "../data/fineweb-3b/val_tokens.lst", "val_loader.dl")
-print("Created val_loader.")

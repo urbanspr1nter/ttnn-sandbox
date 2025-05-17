@@ -1,4 +1,4 @@
-from perf_timer import PerfTimer
+from .perf_timer import PerfTimer
 import tiktoken
 
 def flush(file_name, tokens):
