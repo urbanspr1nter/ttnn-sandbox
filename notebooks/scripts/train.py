@@ -19,11 +19,7 @@ def calc_loss_loader(data_loader, model, num_batches=None):
         # if num_batches exceeds the number of batches in the data loader
         num_batches = min(num_batches, len(data_loader))
 
-    print(f"Num batches: {num_batches}")
     for i, (input_batch, target_batch) in enumerate(data_loader):
-        if i % 10000 == 0:
-            print(f"Processing batch: {i}")
-
         if i < num_batches:
             loss = calc_loss_batch(input_batch, target_batch, model)
             total_loss += loss.item()
@@ -60,6 +56,7 @@ def train_model_simple(model, train_loader, val_loader, optimizer, num_epochs,
                     f"Ep {epoch+1} (Step {global_step:06d}): "
                     f"Train loss {train_loss:.3f}, Val loss {val_loss:.3f}"
                 )
+                generate_and_print_sample(model, tokenizer, start_context)
 
         # Print a sample text after each epoch
         generate_and_print_sample(model, tokenizer, start_context)

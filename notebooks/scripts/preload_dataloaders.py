@@ -18,7 +18,7 @@ def create_train_dataloader(cfg, pickled_file_name, pickled_train_loader_file_na
   with open(pickled_train_loader_file_name, "wb") as f:
     train_loader = create_dataloader_v2(
       train_tokens,
-      batch_size=2,
+      batch_size=1,
       max_length=cfg["context_length"],
       stride=cfg["context_length"],
       drop_last=True,
@@ -36,7 +36,7 @@ def create_val_dataloader(cfg, pickled_file_name, pickled_val_loader_file_name):
   with open(pickled_val_loader_file_name, "wb") as f:
     val_loader = create_dataloader_v2(
       val_tokens,
-      batch_size=2,
+      batch_size=1,
       max_length=cfg["context_length"],
       stride=cfg["context_length"],
       drop_last=True,
