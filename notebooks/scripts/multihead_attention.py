@@ -16,10 +16,10 @@ class MultiHeadAttention(nn.Module):
     self.out_proj = nn.Linear(d_out, d_out)
     self.dropout = nn.Dropout(dropout)
 
-    self.mask = torch.triu(
+    self.register_buffer("mask", torch.triu(
       torch.ones(context_length, context_length),
       diagonal=1
-    )
+    ))
 
   def forward(self, x):
     b, num_tokens, d_in = x.shape
