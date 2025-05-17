@@ -1,4 +1,4 @@
-import torch
+import pickle 
 
 def generator_load_token_data(file_name):
   with open(file_name, "r") as f:
@@ -18,17 +18,19 @@ def load_token_data(file_name):
     if i % 10000 == 0:
       print(f"Processed token {i}")
   
-  return torch.tensor(tokens)
+  return tokens
 
 def load_tokens(file_name):
-  return torch.load(file_name)
+  with open(file_name, "rb") as f:
+    return pickle.load(f)
 
-def save_tensor_from_tokens(torch_tensor, file_name):
-  torch.save(torch_tensor, file_name)
+def save_tokens(tokens, file_name):
+  with open(file_name, "wb") as f:
+    pickle.dump(tokens, f)
 
 """
-t = load_token_data("/home/avgdev/code/ttnn-sandbox/notebooks/data/fineweb-3b/val_tokens.txt")
-save_tensor_from_tokens(t, "val_tokens.pth")
+t = load_token_data("/home/avgdev/code/ttnn-sandbox/notebooks/data/fineweb-3b/train_tokens.txt")
+save_tokens(t, "train_tokens.pth")
 
 print(t)
 print(t.shape)
