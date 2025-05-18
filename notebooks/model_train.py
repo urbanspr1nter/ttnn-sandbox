@@ -7,14 +7,16 @@ from scripts.train import train_model_simple
 from scripts.generate import generate_text_simple
 import tiktoken
 
+base_directory = "/home/rngo/code/ttnn-sandbox"
+
 torch.manual_seed(123)
 
 tokenizer = tiktoken.get_encoding("gpt2")
 
-train_loader = load_train_dataloader("/home/rngo/code/ttnn-sandbox/notebooks/data/fineweb-3b/train_loader.dl")
+train_loader = load_train_dataloader(f"{base_directory}/notebooks/data/fineweb-3b/train_loader.dl")
 print("Loaded train_loader.")
 
-val_loader = load_val_dataloader("/home/rngo/code/ttnn-sandbox/notebooks/data/fineweb-3b/val_loader.dl")
+val_loader = load_val_dataloader(f"{base_directory}/notebooks/data/fineweb-3b/val_loader.dl")
 print("Loaded val_loader")
 
 GPT_CONFIG_355M = {
@@ -46,11 +48,11 @@ timer.stop()
 
 print(f"Took this long to train: {timer.elapsed_ms()} ms")
 
-torch.save(model.state_dict(), "/home/rngo/code/ttnn-sandbox/notebooks/models/gpt2-355M-model.pth")
+torch.save(model.state_dict(), f"{base_directory}/notebooks/models/gpt2-355M-model.pth")
 
 model = GPTModel(GPT_CONFIG_355M)
 model.load_state_dict(
-  torch.load("/home/rngo/code/ttnn-sandbox/notebooks/models/gpt2-355M-model.pth", weights_only=True)
+  torch.load(f"{base_directory}/notebooks/models/gpt2-355M-model.pth", weights_only=True)
 )
 
 perf_timer = PerfTimer()
