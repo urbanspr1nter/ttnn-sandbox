@@ -1,23 +1,23 @@
 
 import torch
-from scripts.preload_dataloaders import load_train_dataloader, load_val_dataloader
+from scripts.preload_dataloaders import load_pickled_dataloader
 from scripts.gpt2_model import GPTModel
 from scripts.perf_timer import PerfTimer
 from scripts.train import train_model_simple
-from scripts.generate import generate_text_simple
 import tiktoken
 
+max_iterations = 1000
 base_directory = "/home/rngo/code/ttnn-sandbox"
 
 torch.manual_seed(123)
 
 tokenizer = tiktoken.get_encoding("gpt2")
 
-train_loader = load_train_dataloader(f"{base_directory}/notebooks/data/fineweb-3b/train_loader.dl")
-print("Loaded train_loader.")
+train_loader = load_pickled_dataloader(f"{base_directory}/notebooks/data/fineweb-3b/train_loader.dl")
+print(f"Loaded train_loader. This loader contains {len(train_loader)} total batches.")
 
-val_loader = load_val_dataloader(f"{base_directory}/notebooks/data/fineweb-3b/val_loader.dl")
-print("Loaded val_loader")
+val_loader = load_pickled_dataloader(f"{base_directory}/notebooks/data/fineweb-3b/val_loader.dl")
+print(f"Loaded val_loader. This loader contains {len(val_loader)} total batches.")
 
 GPT_CONFIG_355M = {
   "vocab_size": 50257,   # Vocabulary size
@@ -40,30 +40,22 @@ num_epochs = 1
 timer = PerfTimer()
 timer.start()
 train_losses, val_losses = train_model_simple(
-    model, train_loader, val_loader, optimizer,
-    num_epochs=num_epochs, eval_freq=50, eval_iter=50, # eval less frequently
-    start_context="Every effort moves you", tokenizer=tokenizer, device="cuda"
+  model,
+  train_loader,
+  val_loader,
+  optimizer,
+  num_epochs=num_epochs,
+  eval_freq=100,
+  eval_iter=100, # eval less frequently
+  start_context="Every effort moves you",
+  tokenizer=tokenizer,
+  device="cuda",
+  max_iter=max_iterations
 )
 timer.stop()
 
 print(f"Took this long to train: {timer.elapsed_ms()} ms")
 
-torch.save(model.state_dict(), f"{base_directory}/notebooks/models/gpt2-355M-model.pth")
+torch.save(model.state_dict(), f"{base_directory}/notebooks/models/gpt2-355M-model-1000-iter.pth")
 
-model = GPTModel(GPT_CONFIG_355M)
-model.load_state_dict(
-  torch.load(f"{base_directory}/notebooks/models/gpt2-355M-model.pth", weights_only=True)
-)
-
-perf_timer = PerfTimer()
-perf_timer.start()
-token_ids = generate_text_simple(
-    model=model,
-    idx=text_to_token_ids("Every effort moves you", tokenizer),
-    max_new_tokens=50,
-    context_size=GPT_CONFIG_355M["context_length"]
-)
-perf_timer.stop()
-
-print("Generated tokens in", perf_timer.elapsed_ms(), "ms")
-print("Output text:\n", token_ids_to_text(token_ids, tokenizer))
+print(f"🎉 Model has been trained!")

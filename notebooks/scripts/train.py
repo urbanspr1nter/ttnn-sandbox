@@ -30,7 +30,8 @@ def calc_loss_loader(data_loader, model, device="cpu", num_batches=None):
     return total_loss / num_batches
 
 def train_model_simple(model, train_loader, val_loader, optimizer, num_epochs,
-                       eval_freq, eval_iter, start_context, tokenizer, device="cpu"):
+                       eval_freq, eval_iter, start_context, tokenizer, device="cpu", max_iter=-1):
+    loader_length = len(train_loader)
     # Initialize lists to track losses and tokens seen
     train_losses, val_losses = [], []
     global_step = -1
@@ -38,6 +39,12 @@ def train_model_simple(model, train_loader, val_loader, optimizer, num_epochs,
     # Main training loop
     for epoch in range(num_epochs):
         for input_batch, target_batch in train_loader:
+
+            # Limit for debuggability
+            if max_iter > -1 and global_step >= max_iter:
+                print(f"Max iterations exceeded at {global_step} steps. Max: {max_iter} steps")
+                return train_losses, val_losses
+
             optimizer.zero_grad() # Reset loss gradients from previous batch iteration
 
             loss = calc_loss_batch(input_batch, target_batch, model, device)
@@ -54,7 +61,7 @@ def train_model_simple(model, train_loader, val_loader, optimizer, num_epochs,
                 train_losses.append(train_loss)
                 val_losses.append(val_loss)
                 print(
-                    f"Ep {epoch+1} (Step {global_step:06d}): "
+                    f"Ep {epoch+1} (Step {global_step:06d} of {loader_length}): "
                     f"Train loss {train_loss:.3f}, Val loss {val_loss:.3f}"
                 )
                 generate_and_print_sample(model, tokenizer, start_context, device=device)
