@@ -34,6 +34,7 @@ def tokenize(file_name, output_file):
 
   timer.stop()
 
+  print(f"Lines Read: {i}")
   print(f"Tokenized {file_name}. Number of tokens: {len(tokens)}. Total lines: {i}. Time: {timer.elapsed_ms()}ms")
 
   return tokens
