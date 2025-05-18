@@ -6,7 +6,7 @@ from scripts.perf_timer import PerfTimer
 from scripts.train import train_model_simple
 import tiktoken
 
-max_iterations = 1000
+max_iterations = -1 
 base_directory = "/home/rngo/code/ttnn-sandbox"
 
 torch.manual_seed(123)
@@ -56,6 +56,6 @@ timer.stop()
 
 print(f"Took this long to train: {timer.elapsed_ms()} ms")
 
-torch.save(model.state_dict(), f"{base_directory}/notebooks/models/gpt2-355M-model-1000-iter.pth")
+torch.save(model.state_dict(), f"{base_directory}/notebooks/models/gpt2-355M-model.pth")
 
 print(f"🎉 Model has been trained!")
