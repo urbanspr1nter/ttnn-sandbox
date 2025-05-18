@@ -56,6 +56,6 @@ timer.stop()
 
 print(f"Took this long to train: {timer.elapsed_ms()} ms")
 
-torch.save(model.state_dict(), f"{base_directory}/notebooks/models/gpt2-355M-model.pth")
+torch.save(model.state_dict(), f"{base_directory}/notebooks/models/gpt2-355M-model-bs4.pth")
 
 print(f"🎉 Model has been trained!")
