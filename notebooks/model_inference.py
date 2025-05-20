@@ -16,6 +16,8 @@ model.load_state_dict(
   torch.load(f"{base_directory}/notebooks/models/gpt2-355M-model.pth", weights_only=True)
 )
 
+model.eval()
+
 perf_timer = PerfTimer()
 perf_timer.start()
 token_ids = generate_text_simple(

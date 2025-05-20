@@ -38,6 +38,7 @@ def train_model_simple(model, train_loader, val_loader, optimizer, num_epochs,
 
     # Main training loop
     for epoch in range(num_epochs):
+        model.train()
         for input_batch, target_batch in train_loader:
 
             # Limit for debuggability
@@ -72,16 +73,23 @@ def train_model_simple(model, train_loader, val_loader, optimizer, num_epochs,
     return train_losses, val_losses 
 
 def evaluate_model(model, train_loader, val_loader, eval_iter, device="cpu"):
-  train_loss = calc_loss_loader(train_loader, model, num_batches=eval_iter, device=device)
-  val_loss = calc_loss_loader(val_loader, model, num_batches=eval_iter, device=device)
+  model.eval()
+  with torch.no_grad():
+    train_loss = calc_loss_loader(train_loader, model, num_batches=eval_iter, device=device)
+    val_loss = calc_loss_loader(val_loader, model, num_batches=eval_iter, device=device)
+  model.train()
   return train_loss, val_loss
 
 def generate_and_print_sample(model, tokenizer, start_context, device="cpu"):
+  model.eval()
   context_size = model.pos_emb.weight.shape[0]
   encoded = text_to_token_ids(start_context, tokenizer).to(device)
-  token_ids = generate_text_simple(
-    model=model, idx=encoded,
-    max_new_tokens=50, context_size=context_size
-  )
+  with torch.no_grad():
+    token_ids = generate_text_simple(
+        model=model, idx=encoded,
+        max_new_tokens=50, context_size=context_size
+    )
   decoded_text = token_ids_to_text(token_ids, tokenizer)
   print(decoded_text.replace("\n", " "))  # Compact print format
+  model.train()
+  

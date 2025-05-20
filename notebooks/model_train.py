@@ -37,6 +37,9 @@ optimizer = torch.optim.AdamW(model.parameters(), lr=0.0004, weight_decay=0.1)
 # We have lots of data, so we can just train for a single epoch.
 num_epochs = 1
 
+# Set the model to training mode
+model.train()
+
 timer = PerfTimer()
 timer.start()
 train_losses, val_losses = train_model_simple(
