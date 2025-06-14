@@ -5,6 +5,7 @@ from scripts.gpt2_model import GPTModel
 from scripts.perf_timer import PerfTimer
 from scripts.train import train_model_simple
 import tiktoken
+import json
 
 max_iterations = -1 
 base_directory = "/home/rngo/code/ttnn-sandbox"
@@ -30,9 +31,10 @@ GPT_CONFIG_355M = {
 }
 
 model = GPTModel(GPT_CONFIG_355M)
-model = model.to("cuda")
+model = torch.compile(model)
+model = model.to("cuda").to(torch.bfloat16)
 
-optimizer = torch.optim.AdamW(model.parameters(), lr=0.0004, weight_decay=0.1)
+optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=0.1, fused=True)
 
 # We have lots of data, so we can just train for a single epoch.
 num_epochs = 1
@@ -43,13 +45,13 @@ model.train()
 timer = PerfTimer()
 timer.start()
 train_losses, val_losses = train_model_simple(
-  model,
-  train_loader,
-  val_loader,
-  optimizer,
+  model=model,
+  train_loader=train_loader,
+  val_loader=val_loader,
+  optimizer=optimizer,
   num_epochs=num_epochs,
-  eval_freq=100,
-  eval_iter=100, # eval less frequently
+  eval_freq=200,
+  eval_iter=200, # eval less frequently
   start_context="Every effort moves you",
   tokenizer=tokenizer,
   device="cuda",
@@ -59,6 +61,14 @@ timer.stop()
 
 print(f"Took this long to train: {timer.elapsed_ms()} ms")
 
-torch.save(model.state_dict(), f"{base_directory}/notebooks/models/gpt2-355M-model-bs4.pth")
+torch.save(model.state_dict(), f"{base_directory}/notebooks/models/gpt2-355M-model-bs32.pth")
+
+with open(f"{base_directory}/notebooks/models/losses.json", "w") as f:
+  f.write(
+    json.dumps({
+      "train_losses": train_losses,
+      "val_losses": val_losses
+    }, indent=2)
+  )
 
 print(f"🎉 Model has been trained!")
