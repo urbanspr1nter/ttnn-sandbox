@@ -3,21 +3,25 @@ import torch
 from scripts.preload_dataloaders import load_pickled_dataloader
 from scripts.gpt2_model import GPTModel
 from scripts.perf_timer import PerfTimer
-from scripts.train import train_model_simple
+from scripts.train import train_model_simple, save_model_and_optimizer
 import tiktoken
 import json
+import os
+from pathlib import Path
 
 max_iterations = -1 
 base_directory = "/home/rngo/code/ttnn-sandbox"
 
-torch.manual_seed(123)
-
 tokenizer = tiktoken.get_encoding("gpt2")
 
-train_loader = load_pickled_dataloader(f"{base_directory}/notebooks/data/fineweb-3b/train_loader.dl")
+model_directory = Path(f"{base_directory}/notebooks/models")
+if not os.path.exists(model_directory):
+  os.mkdir(model_directory)
+
+train_loader = load_pickled_dataloader(f"{base_directory}/notebooks/data/fineweb-10b/train_loader.dl")
 print(f"Loaded train_loader. This loader contains {len(train_loader)} total batches.")
 
-val_loader = load_pickled_dataloader(f"{base_directory}/notebooks/data/fineweb-3b/val_loader.dl")
+val_loader = load_pickled_dataloader(f"{base_directory}/notebooks/data/fineweb-10b/val_loader.dl")
 print(f"Loaded val_loader. This loader contains {len(val_loader)} total batches.")
 
 GPT_CONFIG_355M = {
@@ -50,8 +54,8 @@ train_losses, val_losses = train_model_simple(
   val_loader=val_loader,
   optimizer=optimizer,
   num_epochs=num_epochs,
-  eval_freq=200,
-  eval_iter=200, # eval less frequently
+  eval_freq=1000,
+  eval_iter=100, # eval less frequently
   start_context="Every effort moves you",
   tokenizer=tokenizer,
   device="cuda",
@@ -61,9 +65,14 @@ timer.stop()
 
 print(f"Took this long to train: {timer.elapsed_ms()} ms")
 
-torch.save(model.state_dict(), f"{base_directory}/notebooks/models/gpt2-355M-model-bs32.pth")
+save_model_and_optimizer(
+  model_path=f"{str(model_directory)}/gpt2-355M-model-bs32.pth",
+  model=model,
+  optimizer_path=f"{str(model_directory)}/optimizer-gpt2-355M-model-bs32.pth",
+  optimizer=optimizer
+)
 
-with open(f"{base_directory}/notebooks/models/losses.json", "w") as f:
+with open(f"{str(model_directory)}/losses.json", "w") as f:
   f.write(
     json.dumps({
       "train_losses": train_losses,

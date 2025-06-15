@@ -176,3 +176,4 @@ cython_debug/
 .ttnn*
 notebooks/models/*
 notebooks/data/fineweb-3b
+notebooks/data/fineweb-10b
