@@ -9,14 +9,16 @@ import json
 import os
 from pathlib import Path
 
-max_iterations = -1 
 base_directory = "/home/rngo/code/ttnn-sandbox"
-
-tokenizer = tiktoken.get_encoding("gpt2")
-
 model_directory = Path(f"{base_directory}/notebooks/models")
 if not os.path.exists(model_directory):
   os.mkdir(model_directory)
+
+dataset = 'fineweb-10b'
+
+max_iterations = -1 
+
+tokenizer = tiktoken.get_encoding("gpt2")
 
 train_loader = load_pickled_dataloader(f"{base_directory}/notebooks/data/fineweb-10b/train_loader.dl")
 print(f"Loaded train_loader. This loader contains {len(train_loader)} total batches.")
@@ -38,7 +40,7 @@ model = GPTModel(GPT_CONFIG_355M)
 model = torch.compile(model)
 model = model.to("cuda").to(torch.bfloat16)
 
-optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=0.1, fused=True)
+optimizer = torch.optim.AdamW(model.parameters(), lr=3e-4, weight_decay=0.1, fused=True)
 
 # We have lots of data, so we can just train for a single epoch.
 num_epochs = 1

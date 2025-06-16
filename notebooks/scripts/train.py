@@ -31,7 +31,7 @@ def calc_loss_loader(data_loader, model, device="cpu", num_batches=None):
     return total_loss / num_batches
 
 def train_model_simple(model, train_loader, val_loader, optimizer, num_epochs,
-                       eval_freq, eval_iter, start_context, tokenizer, device="cpu", max_iter=-1):
+                       eval_freq, eval_iter, start_context, tokenizer, device="cpu", max_iter=-1, skip_steps=-1):
     loader_length = len(train_loader)
     # Initialize lists to track losses and tokens seen
     train_losses, val_losses = [], []
@@ -42,6 +42,10 @@ def train_model_simple(model, train_loader, val_loader, optimizer, num_epochs,
         model.train()
 
         for input_batch, target_batch in train_loader:
+            if global_step < skip_steps:
+                print(f'Skipping step. {global_step} / {skip_steps}')
+                continue
+
             # Limit for debuggability
             if max_iter > -1 and global_step >= max_iter:
                 print(f"Max iterations exceeded at {global_step} steps. Max: {max_iter} steps")

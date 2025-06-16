@@ -11,7 +11,13 @@ GPT_CONFIG_355M = {
   "qkv_bias": False      # Query-key-value bias
 }
 
-def create_dataloader_to_pickle(cfg, pickled_tokens_file_name, pickled_loader_file_name, batch_size=1):
+def create_dataloader_to_pickle(
+    cfg,
+    pickled_tokens_file_name,
+    pickled_loader_file_name,
+    batch_size=1,
+    shuffle=True
+):
   with open(pickled_tokens_file_name, "rb") as f:
     tokens = pickle.load(f)
 
@@ -22,7 +28,7 @@ def create_dataloader_to_pickle(cfg, pickled_tokens_file_name, pickled_loader_fi
       max_length=cfg["context_length"],
       stride=cfg["context_length"],
       drop_last=True,
-      shuffle=True,
+      shuffle=shuffle,
       num_workers=0
     )
 
