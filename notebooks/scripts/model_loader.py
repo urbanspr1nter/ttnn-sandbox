@@ -32,11 +32,14 @@ def load_model_from_path(path, device, model_config_overrides=None):
 
   model = GPTModel(gpt2_config)
   model.load_state_dict(fixed_state_dict)
-  model = torch.compile(model)
   
+  # Move to device BEFORE compiling
   if device == "cuda":
-    model.to(device).to(torch.bfloat16)
+    model = model.to(device).to(torch.bfloat16)
   else:
-    model.to(device)
+    model = model.to(device)
+  
+  # Compile AFTER moving to device
+  model = torch.compile(model)
 
   return model
