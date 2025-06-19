@@ -175,5 +175,4 @@ cython_debug/
 .venv
 .ttnn*
 notebooks/models/*
-notebooks/data/fineweb-3b
-notebooks/data/fineweb-10b
+notebooks/data/fineweb-*
