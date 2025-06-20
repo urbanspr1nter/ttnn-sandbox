@@ -24,15 +24,20 @@ model_directory = Path(f"{base_directory}/notebooks/models")
 if not os.path.exists(model_directory):
   os.mkdir(model_directory)
 
-device = 'cuda'
+device = 'cuda:1'
 dataset = 'fineweb-100m'
-max_iterations = 1000
+max_iterations = -1
 
 confirmation_max_iterations = input(f"We will run the training for {max_iterations} iterations. Confirm? [Y/n]");
 if confirmation_max_iterations.lower() == "n":
   print("Exiting training...")
   exit(1)
 
+# We have lots of data, so we can just train for a single epoch.
+num_epochs = input("How many epochs? [Default: 1]")
+if num_epochs <= 0:
+  print("Setting to the default of 1 epoch.")
+  num_epochs = 1
 
 
 train_loader = load_pickled_dataloader(f"{base_directory}/notebooks/data/{dataset}/train_loader.dl")
@@ -51,7 +56,7 @@ GPT_CONFIG_355M = {
   "qkv_bias": False      # Query-key-value bias
 }
 
-if device == "cuda":
+if device.startswith("cuda"):
   torch.cuda.empty_cache()
 
   capability = torch.cuda.get_device_capability()
@@ -61,6 +66,8 @@ if device == "cuda":
   else:
     print("Tensor cores not supported on this CPU. Will still proceed.")
 
+  print(f"Using CUDA device: {torch.cuda.get_device_name(device)}")
+
 #model = load_model_from_path(
 #  f"{model_directory}/checkpoint-model-150000.pth",
 #  device
@@ -68,7 +75,12 @@ if device == "cuda":
 
 
 model = GPTModel(GPT_CONFIG_355M)
-model = model.to("cuda").to(torch.bfloat16)
+
+if device.startswith("cuda"):
+  model = model.to(device).to(torch.bfloat16)
+else:
+  model = model.to(device)
+
 # compile after moving the model.
 model = torch.compile(model)
 
@@ -79,8 +91,6 @@ optimizer = torch.optim.AdamW(
   fused=True
 )
 
-# We have lots of data, so we can just train for a single epoch.
-num_epochs = 1
 
 # Set the model to training mode
 model.train()
@@ -97,7 +107,7 @@ train_losses, val_losses = train_model_simple(
   eval_iter=100, # eval less frequently
   start_context="Every effort moves you",
   tokenizer=tokenizer,
-  device="cuda",
+  device=device,
   max_iter=max_iterations
 )
 timer.stop()
@@ -122,5 +132,5 @@ with open(f"{str(model_directory)}/losses.json", "w") as f:
 print(f"🎉 Model has been trained!")
 
 gc.collect()
-if device == "cuda":
+if device.startswith("cuda"):
   torch.cuda.empty_cache()
