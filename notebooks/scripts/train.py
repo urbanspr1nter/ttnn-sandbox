@@ -1,6 +1,7 @@
 import torch
 from .util import text_to_token_ids, token_ids_to_text
 from .generate import generate_text_simple, generate
+from .gpt2_common import save_training_state
 import json
 
 def calc_loss_batch(input_batch, target_batch, model, device="cpu"):
@@ -82,29 +83,23 @@ def train_model_simple(model, train_loader, val_loader, optimizer, num_epochs,
                 )
 
             if global_step % 10000 == 0:
-                state = {
-                    "epoch": epoch,
-                    "global_step": global_step,
-                    "train_loss": train_loss,
-                    "val_loss": val_loss,
-                    "train_losses": train_losses,
-                    "val_losses": val_losses
-                }
-                with open(
-                    "/home/rngo/code/ttnn-sandbox/notebooks/models/checkpoint_state.json", 
-                    "w", 
-                    encoding="utf-8"
-                ) as f:
-                    f.write(json.dumps(state, indent=2))
+                base_model_path = "/home/rngo/code/ttnn-sandbox/notebooks/models"
+                model_name = f"checkpoint-model-ep{epoch+1}-{global_step}.pth"
+                optimizer_name = f"checkpoint-optimizer-ep{epoch+1}-{global_step}.pth"
 
-                save_model_and_optimizer(
-                    model_path=f"/home/rngo/code/ttnn-sandbox/notebooks/models/checkpoint-model-ep{epoch}-{global_step}.pth",
+                save_training_state(
+                    base_model_path=base_model_path,
                     model=model,
-                    optimizer_path=f"/home/rngo/code/ttnn-sandbox/notebooks/models/checkpoint-optimizer-ep{epoch}-{global_step}.pth",
-                    optimizer=optimizer
+                    model_file_name=model_name,
+                    optimizer=optimizer,
+                    optimizer_file_name=optimizer_name,
+                    epoch=epoch,
+                    global_step=global_step,
+                    train_loss=train_loss,
+                    val_loss=val_loss,
+                    train_losses=train_losses,
+                    val_losses=val_losses
                 )
-
-                
 
         # Print a sample text after each epoch
         generate_and_print_sample(
@@ -115,10 +110,6 @@ def train_model_simple(model, train_loader, val_loader, optimizer, num_epochs,
         )
 
     return train_losses, val_losses
-
-def save_model_and_optimizer(model_path: str, model, optimizer_path: str, optimizer):
-    torch.save(model.state_dict(), model_path)
-    torch.save(optimizer.state_dict(), optimizer_path)
 
 def evaluate_model(model, train_loader, val_loader, eval_iter, device="cpu"):
   model.eval()

@@ -3,7 +3,8 @@ import torch
 from scripts.preload_dataloaders import load_pickled_dataloader
 from scripts.gpt2_model import GPTModel
 from scripts.perf_timer import PerfTimer
-from scripts.train import train_model_simple, save_model_and_optimizer
+from scripts.train import train_model_simple
+from scripts.gpt2_common import save_model_and_optimizer
 from scripts.model_loader import load_model_from_path
 import tiktoken
 import json
@@ -25,7 +26,7 @@ if not os.path.exists(model_directory):
   os.mkdir(model_directory)
 
 device = 'cuda:1'
-dataset = 'fineweb-100m'
+dataset = 'fineweb-1b'
 max_iterations = -1
 
 confirmation_max_iterations = input(f"We will run the training for {max_iterations} iterations. Confirm? [Y/n]");
@@ -34,7 +35,7 @@ if confirmation_max_iterations.lower() == "n":
   exit(1)
 
 # We have lots of data, so we can just train for a single epoch.
-num_epochs = input("How many epochs? [Default: 1]")
+num_epochs = int(input("How many epochs? [Default: 1]"))
 if num_epochs <= 0:
   print("Setting to the default of 1 epoch.")
   num_epochs = 1
@@ -115,9 +116,9 @@ timer.stop()
 print(f"Took this long to train: {timer.elapsed_ms()} ms")
 
 save_model_and_optimizer(
-  model_path=f"{str(model_directory)}/gpt2-355M-model-100m-tokens.pth",
+  model_path=f"{str(model_directory)}/gpt2-355M-model-1b-tokens.pth",
   model=model,
-  optimizer_path=f"{str(model_directory)}/optimizer-gpt2-355M-model-100m-tokens.pth",
+  optimizer_path=f"{str(model_directory)}/optimizer-gpt2-355M-model-1b-tokens.pth",
   optimizer=optimizer
 )
 
