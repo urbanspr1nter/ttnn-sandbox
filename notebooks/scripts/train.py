@@ -1,6 +1,6 @@
 import torch
 from .util import text_to_token_ids, token_ids_to_text
-from .generate import generate_text_simple
+from .generate import generate_text_simple, generate
 import json
 
 def calc_loss_batch(input_batch, target_batch, model, device="cpu"):
@@ -98,9 +98,9 @@ def train_model_simple(model, train_loader, val_loader, optimizer, num_epochs,
                     f.write(json.dumps(state, indent=2))
 
                 save_model_and_optimizer(
-                    model_path=f"/home/rngo/code/ttnn-sandbox/notebooks/models/checkpoint-model-{global_step}.pth",
+                    model_path=f"/home/rngo/code/ttnn-sandbox/notebooks/models/checkpoint-model-ep{epoch}-{global_step}.pth",
                     model=model,
-                    optimizer_path=f"/home/rngo/code/ttnn-sandbox/notebooks/models/checkpoint-optimizer-{global_step}.pth",
+                    optimizer_path=f"/home/rngo/code/ttnn-sandbox/notebooks/models/checkpoint-optimizer-ep{epoch}-{global_step}.pth",
                     optimizer=optimizer
                 )
 
@@ -143,12 +143,21 @@ def generate_and_print_sample(model, tokenizer, start_context, device="cpu"):
   context_size = model.pos_emb.weight.shape[0]
   encoded = text_to_token_ids(start_context, tokenizer).to(device)
   with torch.no_grad():
-    token_ids = generate_text_simple(
+    token_ids = generate(
         model=model,
         idx=encoded,
         max_new_tokens=50,
-        context_size=context_size
+        context_size=context_size,
+        temperature=1.0,
+        top_k=40,
+        device=device
     )
+    # token_ids = generate_text_simple(
+    #     model=model,
+    #     idx=encoded,
+    #     max_new_tokens=50,
+    #     context_size=context_size
+    # )
   decoded_text = token_ids_to_text(token_ids, tokenizer)
   print(decoded_text.replace("\n", " "))  # Compact print format
   model.train()

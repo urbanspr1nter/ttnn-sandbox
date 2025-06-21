@@ -1,15 +1,6 @@
 from scripts.gpt2_model import GPTModel
+from scripts.gpt2_common import GPT_CONFIG_355M
 import torch
-
-GPT_CONFIG_355M = {
-  "vocab_size": 50257,   # Vocabulary size
-  "context_length": 1024, # Context length
-  "emb_dim": 1024,        # Embedding dimension (larger than 124M)
-  "n_heads": 16,         # Number of attention heads (larger than 124M)
-  "n_layers": 24,        # Number of layers (larger than 124M)
-  "drop_rate": 0.0,      # Dropout rate
-  "qkv_bias": False      # Query-key-value bias
-}
 
 def load_model_from_path(path, device, model_config_overrides=None):
   gpt2_config = GPT_CONFIG_355M
@@ -34,7 +25,7 @@ def load_model_from_path(path, device, model_config_overrides=None):
   model.load_state_dict(fixed_state_dict)
   
   # Move to device BEFORE compiling
-  if device == "cuda":
+  if device.startswith("cuda"):
     model = model.to(device).to(torch.bfloat16)
   else:
     model = model.to(device)
