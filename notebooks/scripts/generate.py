@@ -23,9 +23,11 @@ def generate(
   context_size,
   temperature=0.0,
   top_k=None,
-  eos_id=None
+  eos_id=None,
+  device="cpu"
 ):
-
+    idx = idx.to(device)
+    
     # For-loop is the same as before: Get logits, and only focus on last time step
     for _ in range(max_new_tokens):
         idx_cond = idx[:, -context_size:]
