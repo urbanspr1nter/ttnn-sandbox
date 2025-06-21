@@ -116,9 +116,9 @@ timer.stop()
 print(f"Took this long to train: {timer.elapsed_ms()} ms")
 
 save_model_and_optimizer(
-  model_path=f"{str(model_directory)}/gpt2-355M-model-1b-tokens.pth",
+  model_path=f"{str(model_directory)}/gpt2-355M-model-{dataset}.pth",
   model=model,
-  optimizer_path=f"{str(model_directory)}/optimizer-gpt2-355M-model-1b-tokens.pth",
+  optimizer_path=f"{str(model_directory)}/optimizer-gpt2-355M-model-{dataset}.pth",
   optimizer=optimizer
 )
 
