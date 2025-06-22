@@ -4,6 +4,7 @@ the total tokens. If the tokens exceed 1000, they will be filtered away.
 """
 
 import jsonl
+import os
 import random
 import sys
 import tiktoken
@@ -14,6 +15,9 @@ if len(sys.argv) < 3:
   exit(1)
 
 dataset_path = sys.argv[1]
+if not os.path.exists(dataset_path):
+  print("Path does not exist.")
+  exit(1)
 
 max_length = -1
 
