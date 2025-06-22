@@ -3,7 +3,7 @@ from scripts.gpt2_common import GPT_CONFIG_355M
 import torch
 
 def load_model_from_path(path, device, model_config_overrides=None):
-  gpt2_config = GPT_CONFIG_355M
+  gpt2_config = GPT_CONFIG_355M.copy()  # Create a copy to avoid modifying the original
   if model_config_overrides is not None:
     gpt2_config.update(model_config_overrides)
 

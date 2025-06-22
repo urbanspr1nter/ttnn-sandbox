@@ -31,8 +31,21 @@ def calc_loss_loader(data_loader, model, device="cpu", num_batches=None):
 
     return total_loss / num_batches
 
-def train_model_simple(model, train_loader, val_loader, optimizer, num_epochs,
-                       eval_freq, eval_iter, start_context, tokenizer, device="cpu", max_iter=-1, skip_steps=-1):
+def train_model_simple(
+    model,
+    train_loader,
+    val_loader,
+    optimizer,
+    num_epochs,
+    eval_freq,
+    eval_iter,
+    start_context,
+    tokenizer,
+    device="cpu",
+    max_iter=-1,
+    skip_steps=-1,
+    save_iters=1000
+):
     loader_length = len(train_loader)
     # Initialize lists to track losses and tokens seen
     train_losses, val_losses = [], []
@@ -82,7 +95,7 @@ def train_model_simple(model, train_loader, val_loader, optimizer, num_epochs,
                     device=device
                 )
 
-            if global_step % 10000 == 0:
+            if global_step % save_iters == 0:
                 base_model_path = "/home/rngo/code/ttnn-sandbox/notebooks/models"
                 model_name = f"checkpoint-model-ep{epoch+1}-{global_step}.pth"
                 optimizer_name = f"checkpoint-optimizer-ep{epoch+1}-{global_step}.pth"
