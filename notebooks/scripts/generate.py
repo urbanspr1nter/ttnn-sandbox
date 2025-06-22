@@ -1,4 +1,6 @@
 import torch
+from scripts.util import token_ids_to_text
+import tiktoken
 
 def generate_text_simple(model, idx, max_new_tokens, context_size):
   for _ in range(max_new_tokens):
@@ -24,7 +26,8 @@ def generate(
   temperature=0.0,
   top_k=None,
   eos_id=None,
-  device="cpu"
+  device="cpu",
+  stop_sequence=None
 ):
     idx = idx.to(device)
     
@@ -61,5 +64,10 @@ def generate(
 
         # Same as before: append sampled index to the running sequence
         idx = torch.cat((idx, idx_next), dim=1)  # (batch_size, num_tokens+1)
+
+        if stop_sequence is not None:
+          last_one = idx_next[0, -1:].tolist()
+          if last_one == stop_sequence:
+             break
 
     return idx
