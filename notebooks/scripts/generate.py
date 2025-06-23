@@ -27,9 +27,14 @@ def generate(
   top_k=None,
   eos_id=None,
   device="cpu",
-  stop_sequence=None
+  stop_sequence=None,
+  stream=False
 ):
     idx = idx.to(device)
+    
+    # Initialize tokenizer once if streaming
+    if stream:
+        tokenizer = tiktoken.get_encoding("gpt2")
     
     # For-loop is the same as before: Get logits, and only focus on last time step
     for _ in range(max_new_tokens):
@@ -64,6 +69,11 @@ def generate(
 
         # Same as before: append sampled index to the running sequence
         idx = torch.cat((idx, idx_next), dim=1)  # (batch_size, num_tokens+1)
+
+        if stream:
+          idx_next_text = token_ids_to_text(idx_next, tokenizer)
+          if idx_next_text != "\n\n":
+            print(idx_next_text, end="", flush=True)
 
         if stop_sequence is not None:
           last_one = idx_next[0, -1:].tolist()

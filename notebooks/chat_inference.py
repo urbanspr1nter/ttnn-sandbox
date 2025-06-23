@@ -67,7 +67,8 @@ def send_message(messages):
     top_k=20,
     eos_id=50256,
     device=device,
-    stop_sequence=stop_sequence
+    stop_sequence=stop_sequence,
+    stream=True
   )
   response = token_ids_to_text(token_ids, tokenizer)
   start_idx = response.rfind("\n\n### Response:\n")
@@ -76,21 +77,29 @@ def send_message(messages):
   return assistant_message
 
 user_message = ""
+messages = []
 while True:
   user_message = input("# ")
 
   if user_message == "/bye":
     break
 
-  messages = [
+  if user_message == "/reset":
+    print("Resetted context.")
+    messages = []
+    continue
+
+  messages.append(
     {
       "role": "user",
       "content": user_message
     }
-  ]
+  )
+
+  print("> ", end="", flush=True)
 
   result = send_message(messages)
 
-  print(f"> {result}")
+  print()
 
   messages.append({"role": "assistant", "content": result})

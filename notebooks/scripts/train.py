@@ -44,7 +44,8 @@ def train_model_simple(
     device="cpu",
     max_iter=-1,
     skip_steps=-1,
-    save_iters=1000
+    save_iters=1000,
+    stop_sequence=None
 ):
     loader_length = len(train_loader)
     # Initialize lists to track losses and tokens seen
@@ -92,7 +93,8 @@ def train_model_simple(
                     model=model,
                     tokenizer=tokenizer,
                     start_context=start_context,
-                    device=device
+                    device=device,
+                    stop_sequence=stop_sequence
                 )
 
             if global_step % save_iters == 0:
@@ -142,7 +144,7 @@ def evaluate_model(model, train_loader, val_loader, eval_iter, device="cpu"):
   model.train()
   return train_loss, val_loss
 
-def generate_and_print_sample(model, tokenizer, start_context, device="cpu"):
+def generate_and_print_sample(model, tokenizer, start_context, device="cpu", stop_sequence=None):
   model.eval()
   context_size = model.pos_emb.weight.shape[0]
   encoded = text_to_token_ids(start_context, tokenizer).to(device)
@@ -150,11 +152,12 @@ def generate_and_print_sample(model, tokenizer, start_context, device="cpu"):
     token_ids = generate(
         model=model,
         idx=encoded,
-        max_new_tokens=50,
+        max_new_tokens=100,
         context_size=context_size,
         temperature=1.0,
         top_k=40,
-        device=device
+        device=device,
+        stop_sequence=stop_sequence
     )
     # token_ids = generate_text_simple(
     #     model=model,
