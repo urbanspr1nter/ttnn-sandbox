@@ -121,7 +121,8 @@ def train_model_simple(
             model=model, 
             tokenizer=tokenizer, 
             start_context=start_context, 
-            device=device
+            device=device,
+            stop_sequence=stop_sequence
         )
 
     return train_losses, val_losses

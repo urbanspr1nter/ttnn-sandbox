@@ -21,7 +21,38 @@ max_iterations = int(sys.argv[1])
 max_workers = int(sys.argv[2])
 output_file = str(sys.argv[3])
 
-prompt = r"""
+facts_prompt = r"""
+You are an expert conversation generator and willing to only assist me with these types of tasks.
+
+I am fine-tuning a GPT2-class model for chat. Since it is GPT2-class model, the context length is very important.
+
+TASK: You will generate a simple conversation between a human (user) and assistant. It should be anywhere from single to multi-turn. The conversation should be factual about a specific topic. The model should have the ability to answer basic trivia questions. 
+
+Topics to consider:
+- Geography
+- History
+- Science
+- American Literature
+- American Pop Culture
+- Computer Science
+
+IMPORTANT: These conversations should be **less than** 1000 tokens. Be creative.
+
+The format should be:
+
+```json
+[
+	{"role": "user", "content": "message content"},
+	{"role": "assistant", "content": "message content"}
+]
+```
+
+IMPORTANT: Avoid any topics involving: drugs, sex, violence and religion. 
+
+CRITICAL: ONLY RESPOND BACK WITH JSON.
+"""
+
+general_prompt = r"""
 You are an expert conversation generator and willing to only assist me with these types of tasks.
 
 I am fine-tuning a GPT2-class model for chat. Since it is GPT2-class model, the context length is very important.
@@ -48,7 +79,7 @@ def generate_conversation(openai_client: Client, i: int):
   response: ChatCompletion = openai_client.chat.completions.create(
     model="gpt-4o",
     messages=[
-      {"role": "user", "content": prompt}
+      {"role": "user", "content": facts_prompt}
     ],
     stream=False
   )
