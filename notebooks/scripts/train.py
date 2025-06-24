@@ -45,7 +45,8 @@ def train_model_simple(
     max_iter=-1,
     skip_steps=-1,
     save_iters=1000,
-    stop_sequence=None
+    stop_sequence=None,
+    scheduler=None
 ):
     loader_length = len(train_loader)
     # Initialize lists to track losses and tokens seen
@@ -71,6 +72,8 @@ def train_model_simple(
             loss = calc_loss_batch(input_batch, target_batch, model, device)
             loss.backward() # Calculate loss gradients
             optimizer.step() # Update model weights using loss gradients
+            if scheduler:
+                scheduler.step() # Update learning rate
             
             global_step += 1
 
