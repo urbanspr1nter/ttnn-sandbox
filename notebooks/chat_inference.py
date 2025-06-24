@@ -63,7 +63,7 @@ def send_message(messages):
     idx=text_to_token_ids(format_input(messages), tokenizer).to(device),
     max_new_tokens=512,
     context_size=1024,
-    temperature=0.6,
+    temperature=0.7,
     top_k=20,
     eos_id=50256,
     device=device,
