@@ -49,3 +49,7 @@ def visualize_losses(json_path: str):
 
     # Also display the plot
     plt.show() 
+
+
+import sys
+visualize_losses(sys.argv[1])
