@@ -1,12 +1,11 @@
 import torch
 from scripts.gpt2_model_ttnn import GPTModel_ttnn 
-from scripts.gpt2_model import GPTModel
+from scripts.model_loader import load_model_from_path
 
-def load_pretrained_gpt2_model_ttnn(path_to_model, cfg):
-  model = GPTModel(cfg)
-  model.load_state_dict(
-    torch.load(path_to_model, weights_only=True)
-  )
+def load_pretrained_gpt2_model_ttnn(path_to_model, cfg, device):
+  # Load the original model
+  model = load_model_from_path(path_to_model, device="cpu")
+  model.eval()
 
   model_ttnn = GPTModel_ttnn(cfg, device)
 
